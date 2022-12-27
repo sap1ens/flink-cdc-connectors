@@ -44,6 +44,7 @@ import static com.ververica.cdc.connectors.base.utils.SourceRecordUtils.getFetch
 import static com.ververica.cdc.connectors.base.utils.SourceRecordUtils.getHistoryRecord;
 import static com.ververica.cdc.connectors.base.utils.SourceRecordUtils.getMessageTimestamp;
 import static com.ververica.cdc.connectors.base.utils.SourceRecordUtils.isDataChangeRecord;
+import static com.ververica.cdc.connectors.base.utils.SourceRecordUtils.isHeartbeatEvent;
 import static com.ververica.cdc.connectors.base.utils.SourceRecordUtils.isSchemaChangeEvent;
 
 /**
@@ -107,15 +108,21 @@ public class IncrementalSourceRecordEmitter<T>
                 emitElement(element, output);
             }
         } else if (isDataChangeRecord(element)) {
-            if (splitState.isStreamSplitState()) {
-                Offset position = getOffsetPosition(element);
-                splitState.asStreamSplitState().setStartingOffset(position);
-            }
+            updateStartingOffsetForSplit(splitState, element);
             reportMetrics(element);
             emitElement(element, output);
+        } else if (isHeartbeatEvent(element)) {
+            updateStartingOffsetForSplit(splitState, element);
         } else {
             // unknown element
             LOG.info("Meet unknown element {}, just skip.", element);
+        }
+    }
+
+    private void updateStartingOffsetForSplit(SourceSplitState splitState, SourceRecord element) {
+        if (splitState.isStreamSplitState()) {
+            Offset position = getOffsetPosition(element);
+            splitState.asStreamSplitState().setStartingOffset(position);
         }
     }
 
