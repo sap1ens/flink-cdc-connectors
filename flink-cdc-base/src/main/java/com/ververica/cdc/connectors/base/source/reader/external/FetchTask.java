@@ -45,7 +45,7 @@ public interface FetchTask<Split> {
     Split getSplit();
 
     /** Stops current task, most of the implementations don't need this. */
-    default void stop() {}
+    void stop();
 
     /** Base context used in the execution of fetch task. */
     interface Context {

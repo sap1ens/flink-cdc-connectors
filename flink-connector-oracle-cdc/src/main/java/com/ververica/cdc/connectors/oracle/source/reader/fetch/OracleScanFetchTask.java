@@ -87,6 +87,11 @@ public class OracleScanFetchTask implements FetchTask<SourceSplitBase> {
     }
 
     @Override
+    public void stop() {
+        // do nothing
+    }
+
+    @Override
     public boolean isRunning() {
         return taskRunning;
     }

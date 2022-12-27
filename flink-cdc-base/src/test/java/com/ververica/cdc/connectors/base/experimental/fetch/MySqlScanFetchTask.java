@@ -81,6 +81,11 @@ public class MySqlScanFetchTask implements FetchTask<SourceSplitBase> {
     }
 
     @Override
+    public void stop() {
+        // do nothing
+    }
+
+    @Override
     public SnapshotSplit getSplit() {
         return split;
     }

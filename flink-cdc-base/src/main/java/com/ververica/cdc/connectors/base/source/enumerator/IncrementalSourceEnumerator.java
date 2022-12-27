@@ -98,8 +98,8 @@ public class IncrementalSourceEnumerator
     @Override
     public void start() {
         splitAssigner.open();
-        suspendBinlogReaderIfNeed();
-        wakeupBinlogReaderIfNeed();
+        suspendStreamReaderIfNeed();
+        wakeupStreamReaderIfNeed();
         this.context.callAsync(
                 this::getRegisteredReader,
                 this::syncWithReaders,
@@ -145,7 +145,7 @@ public class IncrementalSourceEnumerator
             Map<String, Offset> finishedOffsets = reportEvent.getFinishedOffsets();
             splitAssigner.onFinishedSplits(finishedOffsets);
 
-            wakeupBinlogReaderIfNeed();
+            wakeupStreamReaderIfNeed();
 
             // send acknowledge event
             FinishedSnapshotSplitsAckEvent ackEvent =
@@ -206,7 +206,7 @@ public class IncrementalSourceEnumerator
                 LOG.info("Assign split {} to subtask {}", sourceSplit, nextAwaiting);
             } else {
                 // there is no available splits by now, skip assigning
-                wakeupBinlogReaderIfNeed();
+                wakeupStreamReaderIfNeed();
                 break;
             }
         }
@@ -234,11 +234,11 @@ public class IncrementalSourceEnumerator
             }
         }
 
-        suspendBinlogReaderIfNeed();
-        wakeupBinlogReaderIfNeed();
+        suspendStreamReaderIfNeed();
+        wakeupStreamReaderIfNeed();
     }
 
-    private void suspendBinlogReaderIfNeed() {
+    private void suspendStreamReaderIfNeed() {
         if (isSuspended(splitAssigner.getAssignerStatus())) {
             for (int subtaskId : getRegisteredReader()) {
                 context.sendEventToSourceReader(subtaskId, new SuspendStreamReaderEvent());
@@ -247,7 +247,7 @@ public class IncrementalSourceEnumerator
         }
     }
 
-    private void wakeupBinlogReaderIfNeed() {
+    private void wakeupStreamReaderIfNeed() {
         if (isAssigningFinished(splitAssigner.getAssignerStatus()) && streamReaderIsSuspended) {
             for (int subtaskId : getRegisteredReader()) {
                 context.sendEventToSourceReader(

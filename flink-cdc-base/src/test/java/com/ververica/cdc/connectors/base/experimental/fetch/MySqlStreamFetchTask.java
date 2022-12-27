@@ -73,6 +73,11 @@ public class MySqlStreamFetchTask implements FetchTask<SourceSplitBase> {
     }
 
     @Override
+    public void stop() {
+        // do nothing
+    }
+
+    @Override
     public boolean isRunning() {
         return taskRunning;
     }
